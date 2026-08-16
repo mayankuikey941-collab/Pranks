@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kirayedaar & Monthly Rent Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+    }
+    .container {
+      max-width: 1050px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #38bdf8;
+      font-size: 24px;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+    .month-filter-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #1e293b;
+      border: 1px solid #0284c7;
+      padding: 14px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .month-filter-box label {
+      font-weight: 600;
+      color: #38bdf8;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .date-group {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1.1fr;
+      gap: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input[type="file"] {
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+    input[type="file"]::file-selector-button {
+      background: #334155;
+      color: #38bdf8;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    button.btn-add {
+      width: 100%;
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+    button.btn-add:hover {
+      background: #0369a1;
+    }
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #334155;
+      white-space: nowrap;
+    }
+    th {
+      background: #0f172a;
+      color: #94a3b8;
+    }
+    .badge {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-block;
+      user-select: none;
+    }
+    .paid { background: #166534; color: #4ade80; }
+    .pending { background: #991b1b; color: #f87171; }
+    .actions {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-wa {
+      background: #22c55e;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .btn-history {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .btn-more {
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .btn-del {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .summary-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      flex: 1;
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid #334155;
+    }
+    .summary-card h3 {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .summary-card p {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 4px;
+      color: #38bdf8;
+    }
+
+    /* Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 100;
+    }
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid #475569;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 14px;
+    }
+    .history-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .paid-date {
+      font-size: 12px;
+      color: #38bdf8;
+    }
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 14px;
+    }
+    .details-label {
+      color: #94a3b8;
+    }
+    .details-val {
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .aadhaar-img-box {
+      margin-top: 14px;
+      text-align: center;
+    }
+    .aadhaar-preview-img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🏠 Kirayedaar & Monthly Rent Manager</h1>
+
+  <!-- Active Month Selector -->
+  <div class="month-filter-box">
+    <label for="currentMonthSelect">📅 Select Month:</label>
+    <input type="month" id="currentMonthSelect" onchange="renderTenants()" style="width: auto; padding: 6px 12px;">
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="summary-box">
+    <div class="summary-card">
+      <h3>Total Rooms</h3>
+      <p id="totalTenants">0</p>
+    </div>
+    <div class="summary-card">
+      <h3>Total Monthly Rent</h3>
+      <p id="totalRent">₹0</p>
+    </div>
+    <div class="summary-card">
+      <h3>Selected Month Paid</h3>
+      <p id="paidRent" style="color: #4ade80;">₹0</p>
+    </div>
+    <div class="summary-card">
+      <h3>Selected Month Due</h3>
+      <p id="pendingRent" style="color: #f87171;">₹0</p>
+    </div>
+  </div>
+
+  <!-- Add Tenant Form -->
+  <div class="card">
+    <div class="form-grid">
+      <input type="text" id="roomNo" placeholder="Room / Flat No.">
+      <input type="text" id="name" placeholder="Kirayedaar ka Naam">
+      <input type="tel" id="phone" placeholder="WhatsApp No.">
+      <input type="number" id="rent" placeholder="Monthly Rent (₹)">
+      <input type="number" id="deposit" placeholder="Advance Deposit (₹)">
+      
+      <!-- Day, Month, Year -->
+      <div class="date-group">
+        <select id="joinDay" title="Day"></select>
+        <select id="joinMonth" title="Month"></select>
+        <select id="joinYear" title="Year"></select>
+      </div>
+
+      <!-- Aadhaar Photo Upload -->
+      <div style="grid-column: 1 / -1;">
+        <label style="font-size: 12px; color: #94a3b8; margin-bottom: 4px; display: block;">Aadhaar Card Photo (Upload Photo):</label>
+        <input type="file" id="aadhaarPhoto" accept="image/*">
+      </div>
+    </div>
+    <button class="btn-add" onclick="addTenant()">+ Naya Tenant Add Karein</button>
+  </div>
+
+  <!-- Tenant List Table -->
+  <div class="card table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Room</th>
+          <th>Naam</th>
+          <th>Mobile</th>
+          <th>Joined On</th>
+          <th>Rent</th>
+          <th>Deposit</th>
+          <th>Selected Month Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tenantList">
+        <!-- Rows render hongi -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal" id="historyModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle" style="color: #38bdf8;">Payment History</h3>
+      <button class="modal-close" onclick="closeModal('historyModal')">✕</button>
+    </div>
+    <div id="modalHistoryList"></div>
+  </div>
+</div>
+
+<!-- More Details Modal -->
+<div class="modal" id="detailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="detailsModalTitle" style="color: #38bdf8;">Tenant Profile</h3>
+      <button class="modal-close" onclick="closeModal('detailsModal')">✕</button>
+    </div>
+    <div id="modalDetailsContent"></div>
+  </div>
+</div>
+
+<script>
+  const monthsList = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  function formatToCustomDate(dateObj) {
+    const monthName = monthsList[dateObj.getMonth()];
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+    return `${monthName}/${day}/${year}`;
+  }
+
+  function initDateDropdowns() {
+    const daySelect = document.getElementById('joinDay');
+    const monthSelect = document.getElementById('joinMonth');
+    const yearSelect = document.getElementById('joinYear');
+
+    const now = new Date();
+
+    daySelect.innerHTML = '';
+    for (let d = 1; d <= 31; d++) {
+      daySelect.innerHTML += `<option value="${d}" ${d === now.getDate() ? 'selected' : ''}>${d}</option>`;
+    }
+
+    monthSelect.innerHTML = '';
+    monthsList.forEach((m, idx) => {
+      monthSelect.innerHTML += `<option value="${m}" ${idx === now.getMonth() ? 'selected' : ''}>${m}</option>`;
+    });
+
+    yearSelect.innerHTML = '';
+    const currentYear = now.getFullYear();
+    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+      yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+    }
+  }
+
+  const today = new Date();
+  const currentDefaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  document.getElementById('currentMonthSelect').value = currentDefaultMonth;
+
+  let tenants = JSON.parse(localStorage.getItem('tenantsDataMultiMonthV7')) || [];
+
+  function saveData() {
+    try {
+      localStorage.setItem('tenantsDataMultiMonthV7', JSON.stringify(tenants));
+    } catch (e) {
+      alert("Storage limit exceed ho gaya hai. Kripya kam size ki photos upload karein.");
+    }
+    renderTenants();
+  }
+
+  // Image compressor function
+  function compressAndGetBase64(file, callback) {
+    if (!file) {
+      callback(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function (event) {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 600;
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+        canvas.height = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+        callback(compressedDataUrl);
+      };
+    };
+  }
+
+  function addTenant() {
+    const room = document.getElementById('roomNo').value.trim();
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const rent = Number(document.getElementById('rent').value);
+    const deposit = Number(document.getElementById('deposit').value) || 0;
+    const fileInput = document.getElementById('aadhaarPhoto');
+
+    const day = document.getElementById('joinDay').value;
+    const month = document.getElementById('joinMonth').value;
+    const year = document.getElementById('joinYear').value;
+
+    if (!room || !name || !phone || !rent) {
+      alert("Kripya Room No, Naam, Mobile aur Rent fill karein.");
+      return;
+    }
+
+    const formattedJoinDate = `${month}/${day}/${year}`;
+
+    compressAndGetBase64(fileInput.files[0], function(photoBase64) {
+      tenants.push({
+        id: Date.now(),
+        room,
+        name,
+        phone,
+        aadhaarPhoto: photoBase64,
+        rent,
+        deposit,
+        joinDate: formattedJoinDate,
+        payments: {}
+      });
+
+      document.getElementById('roomNo').value = '';
+      document.getElementById('name').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('rent').value = '';
+      document.getElementById('deposit').value = '';
+      document.getElementById('aadhaarPhoto').value = '';
+
+      initDateDropdowns();
+      saveData();
+    });
+  }
+
+  function toggleMonthStatus(id, monthKey) {
+    const formattedPaymentDate = formatToCustomDate(new Date());
+
+    tenants = tenants.map(t => {
+      if (t.id === id) {
+        const record = t.payments[monthKey];
+        const currentStatus = record && typeof record === 'object' ? record.status : record || 'Pending';
+
+        if (currentStatus === 'Paid') {
+          t.payments[monthKey] = { status: 'Pending', paidDate: null };
+        } else {
+          t.payments[monthKey] = { status: 'Paid', paidDate: formattedPaymentDate };
+        }
+      }
+      return t;
+    });
+    saveData();
+  }
+
+  function deleteTenant(id) {
+    if (confirm("Kya aap sach me ye record delete karna chahte hain?")) {
+      tenants = tenants.filter(t => t.id !== id);
+      saveData();
+    }
+  }
+
+  function getStatusInfo(tenant, monthKey) {
+    const record = tenant.payments[monthKey];
+    if (!record) return { status: 'Pending', paidDate: null };
+    if (typeof record === 'string') return { status: record, paidDate: null };
+    return record;
+  }
+
+  function renderTenants() {
+    const selectedMonth = document.getElementById('currentMonthSelect').value;
+    const tbody = document.getElementById('tenantList');
+    tbody.innerHTML = '';
+
+    let totalR = 0;
+    let paidR = 0;
+    let pendingR = 0;
+
+    tenants.forEach(t => {
+      totalR += t.rent;
+      const { status } = getStatusInfo(t, selectedMonth);
+
+      if (status === 'Paid') {
+        paidR += t.rent;
+      } else {
+        pendingR += t.rent;
+      }
+
+      const waMsg = encodeURIComponent(`Namaste ${t.name} ji, Room No ${t.room} ka ${selectedMonth} mahine ka rent ₹${t.rent} baaki hai. Kripya pay kar dein.`);
+      const waLink = `https://wa.me/91${t.phone}?text=${waMsg}`;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${t.room}</strong></td>
+        <td>${t.name}</td>
+        <td>${t.phone}</td>
+        <td>${t.joinDate || 'N/A'}</td>
+        <td>₹${t.rent}</td>
+        <td>₹${t.deposit}</td>
+        <td>
+          <span class="badge ${status.toLowerCase()}" onclick="toggleMonthStatus(${t.id}, '${selectedMonth}')">
+            ${status === 'Paid' ? '✓ Paid' : '⏳ Due'}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="btn-more" onclick="viewMoreDetails(${t.id})">More</button>
+          <button class="btn-history" onclick="viewHistory(${t.id})">History</button>
+          <a class="btn-wa" href="${waLink}" target="_blank">WhatsApp</a>
+          <button class="btn-del" onclick="deleteTenant(${t.id})">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    document.getElementById('totalTenants').innerText = tenants.length;
+    document.getElementById('totalRent').innerText = `₹${totalR}`;
+    document.getElementById('paidRent').innerText = `₹${paidR}`;
+    document.getElementById('pendingRent').innerText = `₹${pendingR}`;
+  }
+
+  function viewMoreDetails(id) {
+    const tenant = tenants.find(t => t.id === id);
+    if (!tenant) return;
+
+    document.getElementById('detailsModalTitle').innerText = `${tenant.name} - Profile Details`;
+    const content = document.getElementById('modalDetailsContent');
+
+    const photoHtml = tenant.aadhaarPhoto
+      ? `<div class="aadhaar-img-box">
+          <span class="details-label" style="display:block; margin-bottom: 5px;">Aadhaar Card Photo:</span>
+          <img src="${tenant.aadhaarPhoto}" alt="Aadhaar Card" class="aadhaar-preview-img">
+          <a href="${tenant.aadhaarPhoto}" download="Aadhaar_${tenant.name}.jpg" style="display:inline-block; margin-top:8px; font-size:12px; color:#38bdf8; text-decoration:underline;">Full Photo Download Karein</a>
+         </div>`
+      : `<div class="details-row"><span class="details-label">Aadhaar Photo:</span><span class="details-val" style="color:#94a3b8;">Not Uploaded</span></div>`;
+
+    content.innerHTML = `
+      <div class="details-row">
+        <span class="details-label">Room / Flat No:</span>
+        <span class="details-val">${tenant.room}</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Tenant Name:</span>
+        <span class="details-val">${tenant.name}</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Mobile Number:</span>
+        <span class="details-val">${tenant.phone}</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Monthly Rent:</span>
+        <span class="details-val">₹${tenant.rent}</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Security Deposit:</span>
+        <span class="details-val">₹${tenant.deposit}</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Joining Date:</span>
+        <span class="details-val">${tenant.joinDate}</span>
+      </div>
+      ${photoHtml}
+    `;
+
+    document.getElementById('detailsModal').style.display = 'flex';
+  }
+
+  function viewHistory(id) {
+    const tenant = tenants.find(t => t.id === id);
+    if (!tenant) return;
+
+    document.getElementById('modalTitle').innerText = `${tenant.name} (Room: ${tenant.room}) - History`;
+    const list = document.getElementById('modalHistoryList');
+    list.innerHTML = '';
+
+    const months = Object.keys(tenant.payments).sort().reverse();
+
+    if (months.length === 0) {
+      list.innerHTML = `<p style="color: #94a3b8; text-align: center; padding: 10px;">Abhi tak koi payment record nahi mila.</p>`;
+    } else {
+      months.forEach(m => {
+        const info = getStatusInfo(tenant, m);
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        
+        let dateHtml = '';
+        if (info.status === 'Paid' && info.paidDate) {
+          dateHtml = `<span class="paid-date">Paid Date: <strong>${info.paidDate}</strong></span>`;
+        }
+
+        item.innerHTML = `
+          <div class="history-meta">
+            <strong>${m}</strong>
+            ${dateHtml}
+          </div>
+          <span class="badge ${info.status.toLowerCase()}">${info.status}</span>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    document.getElementById('historyModal').style.display = 'flex';
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+  }
+
+  window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+      event.target.style.display = 'none';
+    }
+  };
+
+  initDateDropdowns();
+  renderTenants();
+</script>
+</body>
+</html>
